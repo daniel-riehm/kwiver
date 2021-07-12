@@ -130,6 +130,7 @@ set( sources
   uuid_factory.cxx
   uv_unwrap_mesh.cxx
   video_input.cxx
+  video_output.cxx
   write_object_track_set.cxx
   write_track_descriptor_set.cxx
 )

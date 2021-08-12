@@ -5,7 +5,7 @@
 /// \file
 /// \brief Test KLV blob functions.
 
-#include <arrows/klv/klv_blob.txx>
+#include <arrows/klv/klv_blob.h>
 
 #include <gtest/gtest.h>
 

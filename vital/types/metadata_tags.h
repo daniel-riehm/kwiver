@@ -96,6 +96,19 @@
         "Index of metadata stream",                                     \
         int,                                                            \
         "" )                                                            \
+  CALL( VIDEO_FRAME_NUMBER,                                             \
+        "Frame number",                                                 \
+        uint64_t,                                                       \
+        "Frame number of video input." )                                \
+  CALL( VIDEO_IMAGE_NUMBER,                                             \
+        "Image number",                                                 \
+        int64_t,                                                        \
+        "Frame number of video input, not counting frames before the "  \
+        "first keyframe." )                                             \
+  CALL( VIDEO_RELATIVE_FRAME_TIMESTAMP,                                 \
+        "Relative frame timestamp",                                     \
+        uint64_t,                                                       \
+        "Microseconds since beginning of video input." )                \
   CALL( VIDEO_URI,                                                      \
         "Video URI",                                                    \
         std::string,                                                    \

@@ -118,6 +118,8 @@ public:
   // local state
   bool frame_advanced = false;
   bool end_of_video = true;
+  size_t first_keyframe = 0;
+  size_t first_timestamp = 0;
   size_t number_of_frames = 0;
   bool collected_all_metadata = false;
   bool estimated_num_frames = false;
@@ -731,6 +733,15 @@ public:
         {
           // Add the data stream index
           meta->add< vital::VITAL_META_VIDEO_DATA_STREAM_INDEX >( md.first );
+          meta->add< vital::VITAL_META_VIDEO_FRAME_NUMBER >(
+            static_cast< uint64_t >( this->frame_number() ) );
+          meta->add< vital::VITAL_META_VIDEO_IMAGE_NUMBER >(
+            static_cast< int64_t >( this->frame_number() -
+                                     this->first_keyframe ) );
+          meta->add< vital::VITAL_META_VIDEO_RELATIVE_FRAME_TIMESTAMP >(
+            static_cast< uint64_t >(
+              ( f_pts - first_timestamp ) *
+              av_q2d( this->f_video_stream->time_base ) * 1000000.0 ) );
 
           set_default_metadata( meta );
 
@@ -833,6 +844,12 @@ public:
       {
         initial_frame_number = 0;
       }
+
+      av_seek_frame( this->f_format_context, this->f_video_index, 0, AVSEEK_FLAG_ANY );
+      avcodec_flush_buffers( this->f_video_encoding );
+      this->advance();
+      first_keyframe = this->frame_number();
+      first_timestamp = f_pts;
 
       bool advance_successful = false;
       // Seek to as close as possibly to the end of the video

@@ -781,6 +781,9 @@ public:
     {
       std::lock_guard< std::mutex > lock( open_mutex );
 
+      av_seek_frame( this->f_format_context, this->f_video_index, 0,
+                     AVSEEK_FLAG_ANY );
+
       auto initial_frame_number = this->frame_number();
 
       if( !frame_advanced && !end_of_video )

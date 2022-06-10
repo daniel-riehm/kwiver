@@ -32,6 +32,9 @@ namespace ffmpeg {
 // ----------------------------------------------------------------------------
 std::string error_string( int error_code );
 
+// ----------------------------------------------------------------------------
+bool is_hardware_codec( AVCodec const* codec );
+
 // --------------------------------------------------------------------------
 template< class... Args >
 inline void throw_error( Args... args )

@@ -630,7 +630,28 @@ ffmpeg_video_input::priv::open_video_state
   LOG_INFO( logger, "Using input codec `" << codec_name << "`" );
 
   // Find appropriate codec
-  auto const codec = avcodec_find_decoder( video_params->codec_id );
+  AVCodec const* codec = nullptr;
+  AVCodec const* codec_ptr = nullptr;
+#if LIBAVCODEC_VERSION_MAJOR > 57
+  for( void* it = nullptr; ( codec_ptr = av_codec_iterate( &it ) ); )
+#else
+  while( ( codec_ptr = av_codec_next( codec_ptr ) ) )
+#endif
+  {
+    // Only software decoders for now
+    if( !av_codec_is_decoder( codec_ptr ) ||
+        is_hardware_codec( codec_ptr ) ||
+        ( codec_ptr->capabilities & AV_CODEC_CAP_EXPERIMENTAL ) )
+    {
+      continue;
+    }
+
+    if( codec_ptr->id == video_params->codec_id )
+    {
+      codec = codec_ptr;
+      break;
+    }
+  }
   throw_error_null( codec, "Could not find input codec `", codec_name, "`" );
   LOG_INFO( logger, "Codec provided by `" << codec->name << "`" );
 

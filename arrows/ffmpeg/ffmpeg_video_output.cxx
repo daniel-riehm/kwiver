@@ -61,7 +61,7 @@ public:
     AVStream* video_stream;
     AVStream* metadata_stream;
     codec_context_uptr codec_context;
-    AVCodec* codec;
+    AVCodec const* codec;
     sws_context_uptr image_conversion_context;
   };
 
@@ -314,34 +314,60 @@ ffmpeg_video_output::impl::open_video_state
   }
   output_format = format_context->oformat;
 
-  // Configure video codec
-  auto const x264_codec = avcodec_find_encoder_by_name( "libx264" );
-  auto const x265_codec = avcodec_find_encoder_by_name( "libx265" );
-  AVCodec* requested_codec = nullptr;
-  switch( settings.parameters->codec_id )
+  // Find best video codec
+  AVCodec const* requested_codec = nullptr;
+  AVCodec const* config_codec = nullptr;
+  AVCodec const* h265_codec = nullptr;
+  AVCodec const* h264_codec = nullptr;
+  AVCodec const* default_codec = nullptr;
+  AVCodec const* codec_ptr = nullptr;
+#if LIBAVCODEC_VERSION_MAJOR > 57
+  for( void* it = nullptr; ( codec_ptr = av_codec_iterate( &it ) ); )
+#else
+  while( ( codec_ptr = av_codec_next( codec_ptr ) ) )
+#endif
   {
-    case AV_CODEC_ID_H264:
-      requested_codec = x264_codec;
-      break;
-    case AV_CODEC_ID_H265:
-      requested_codec = x265_codec;
-      break;
-    default:
-      requested_codec = avcodec_find_encoder( settings.parameters->codec_id );
-  }
-  auto const config_codec =
-    avcodec_find_encoder_by_name( parent.codec_name.c_str() );
-
-  codec = avcodec_find_encoder( output_format->video_codec );
-  for( auto const encoder : { requested_codec,
-                              config_codec,
-                              x265_codec,
-                              x264_codec } )
-  {
-    // Ensure codec exists and is compatible with the output file format
-    if( encoder &&
+    // Only software encoders for now
+    if( !av_codec_is_encoder( codec_ptr ) ||
+        is_hardware_codec( codec_ptr ) ||
+        ( codec_ptr->capabilities & AV_CODEC_CAP_EXPERIMENTAL ) ||
         avformat_query_codec(
-          output_format, encoder->id, FF_COMPLIANCE_STRICT ) )
+          output_format, codec_ptr->id, FF_COMPLIANCE_STRICT ) <= 0 )
+    {
+      continue;
+    }
+
+    if( !requested_codec && codec_ptr->id == settings.parameters->codec_id )
+    {
+      requested_codec = codec_ptr;
+    }
+    if( !config_codec && codec_ptr->name == parent.codec_name )
+    {
+      config_codec = codec_ptr;
+    }
+    if( !h265_codec && codec_ptr->id == AV_CODEC_ID_H265 )
+    {
+      h265_codec = codec_ptr;
+    }
+    if( !h264_codec && codec_ptr->id == AV_CODEC_ID_H264 )
+    {
+      h264_codec = codec_ptr;
+    }
+    if( !default_codec )
+    {
+      default_codec = codec_ptr;
+    }
+  }
+
+  // Go through found codecs in order of priority
+  for( auto const encoder :
+       { requested_codec,
+         config_codec,
+         h265_codec,
+         h264_codec,
+         default_codec } )
+  {
+    if( encoder )
     {
       codec = encoder;
       break;

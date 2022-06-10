@@ -29,6 +29,19 @@ error_string( int error_code )
 }
 
 // ----------------------------------------------------------------------------
+bool
+is_hardware_codec( AVCodec const* codec )
+{
+#if LIBAVCODEC_VERSION_MAJOR > 57
+  return ( codec->capabilities & AV_CODEC_CAP_HARDWARE );
+#else
+  // There's no reliable way to know with older versions of FFmpeg
+  ( void )codec;
+  return false;
+#endif
+}
+
+// ----------------------------------------------------------------------------
 #define DEFINE_DELETER( LOWER, UPPER ) \
   void _ ## LOWER ## _deleter::operator()( UPPER* ptr ) const
 
@@ -59,7 +72,10 @@ DEFINE_DELETER( format_context, AVFormatContext )
 // ----------------------------------------------------------------------------
 DEFINE_DELETER( codec_context, AVCodecContext )
 {
-  avcodec_flush_buffers( ptr );
+  if( ptr->codec )
+  {
+    avcodec_flush_buffers( ptr );
+  }
   avcodec_free_context( &ptr );
 }
 

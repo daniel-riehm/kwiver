@@ -65,14 +65,14 @@ klv_0903_vtracker_set_traits_lookup()
       { 0, 1 } },
     { {},
       ENUM_AND_NAME( KLV_0903_VTRACKER_START_TIME ),
-      std::make_shared< klv_uint_format >( 8 ),
+      std::make_shared< klv_uint_format >(),
       "Start Time",
       "Time of the first observation of the entity. Microseconds since "
       "January 1, 1970.",
       { 0, 1 } },
     { {},
       ENUM_AND_NAME( KLV_0903_VTRACKER_END_TIME ),
-      std::make_shared< klv_uint_format >( 8 ),
+      std::make_shared< klv_uint_format >(),
       "End Time",
       "Time of the most recent observation of the entity. Microseconds since "
       "January 1, 1970.",

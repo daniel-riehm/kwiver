@@ -288,7 +288,7 @@ class bundle_adjust_with_lens_distortion : public ::testing::TestWithParam<int>
 TEST_P(bundle_adjust_with_lens_distortion, use_coefficients)
 {
   auto const k = GetParam();
-  auto const& dc = distortion_coefficients( k );
+  auto const dc = distortion_coefficients( k );
 
   ceres::bundle_adjust ba;
   config_block_sptr cfg = ba.get_configuration();
@@ -312,7 +312,7 @@ TEST_P(bundle_adjust_with_lens_distortion, use_coefficients)
 TEST_P(bundle_adjust_with_lens_distortion, estimate_coefficients)
 {
   auto const k = GetParam();
-  auto const& dc = distortion_coefficients( k );
+  auto const dc = distortion_coefficients( k );
 
   ceres::bundle_adjust ba;
   config_block_sptr cfg = ba.get_configuration();

@@ -120,7 +120,8 @@ klv_read_packet( klv_read_iter_t& data, size_t max_length )
   }
 
   // Verify checksum
-  auto const& format = klv_lookup_packet_traits().by_uds_key( key ).format();
+  auto const& traits = klv_lookup_packet_traits().by_uds_key( key );
+  auto const& format = format.format();
   auto const checksum_format = format.checksum_format();
   size_t checksum_length = 0;
   if( checksum_format )
@@ -139,7 +140,7 @@ klv_read_packet( klv_read_iter_t& data, size_t max_length )
     {
       LOG_ERROR(
         kv::get_logger( "klv" ),
-        "calculated checksum "
+        traits.name() << ": calculated checksum "
         << "(" << checksum_format->to_string( actual_checksum ) << ") "
         << "does not equal checksum contained in packet "
         << "(" << checksum_format->to_string( expected_checksum ) << ")" );
